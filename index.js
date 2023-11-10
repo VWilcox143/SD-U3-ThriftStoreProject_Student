@@ -54,31 +54,141 @@ const salesTax = [
 ];
 
 //! Classes
+class Store {
+    constructor(state, name, city, taxRate) {
+        this.state = state;
+        this.name = name;
+        this.city = city;
+        this.taxRate = taxRate;
+        this.inventory = [];
+        this.profit = 0;
+        this.balance = 200;
+        this.expense = 0;
+        this.taxPaid = 0;
+    }
+    static createStore(state, name, city) {
+        const stateTax = salesTax.find(item => item.state === state);
+        const taxRate = stateTax ? stateTax.tax : 0;
+    
+        return new Store(state, name, city, taxRate);
+    }
+    
+    addToInventory(product, markup) {
+        const itemExists = this.inventory.find(item => item.upc === product.upc);
+            if (itemExists) {
+            itemExists.quantity += product.quantity; 
+            } else {
+                const marketPrice = product.purchasePrice + (product.purchasePrice * markup);
+                product.salePrice = marketPrice;
+                this.inventory.push(product);
+                this.balance -= product.purchasePrice * product.quantity;
+                    }
+    }
+
+
+    sellItem(upc, quantity) {
+        const item = this.inventory.find(item => item.upc === upc);
+            if (!item) {
+            return 'Item not found in inventory.';
+            } 
+        const salesTax = item.salePrice * this.taxRate;
+        this.taxPaid += salesTax.toFixed(2);
+        const totalPrice = item.salePrice + salesTax;
+        this.balance += totalPrice * quantity;
+        this.profit += (totalPrice - item.purchasePrice) * quantity;
+        item.quantity -= quantity;
+        return totalPrice * quantity;
+    }
+}
+
+class Product {
+    constructor(name, type, price, quantity) {
+        this.name = name;
+        this.type = type;
+        this.purchasePrice = price;
+        this.quantity = quantity;
+        this.salePrice;
+    }
+}
+
+class Kaleidoscope extends Product {
+    constructor(name, type, price, salePrice, quantity) {
+        super(name, type, price, salePrice, quantity);
+        this.upc = 1
+    }
+}
+
+class BeerStein extends Product {
+    constructor(name, type, price, salePrice, quantity) {
+        super(name, type, price, salePrice, quantity);
+        this.upc = 2
+    }
+}
+
+class TubeMan extends Product {
+    constructor(name, type, price, salePrice, quantity) {
+        super(name, type, price, salePrice, quantity);
+        this.upc = 3
+    }
+}
+
+class Instrument extends Product {
+    constructor(name, type, price, salePrice, quantity) {
+        super(name, type, price, salePrice, quantity);
+        this.upc = 4
+    }
+}
+
 
 
 //! CREATE STORES
 // Generate 3 different stores, each in a different state.
+const rockinWilly = Store.createStore('Vermont', 'Rocking Willy', 'Rutland');
+
+
+const snoogins = Store.createStore('New Jersey', 'Snoogins', 'Redbank');
+
+
+const boobooKittyFun = Store.createStore('California', 'Boobookittyfun', 'San Diego');
+
 
 //! Inventory
-
-
+let kaleidoscope = new Kaleidoscope('Kaleidoscope', 'toys', 1, 5, 5);
+let stein1 = new BeerStein('Stein', 'kitchenware', 20, 1, 1);
+let stein2 = new BeerStein('Stein', 'kitchenware', 20, 1, 1);
+let stein3 = new BeerStein('Stein', 'kitchenware', 20, 1, 1);
+let wackyWaving = new TubeMan('Herbert','party', 100, 1, 3);
+let citar = new Instrument('Citar', 'musical_instrument', 60, 75, 1);
+let harp = new Instrument('Harp', 'musical_instrument', 50, 100, 1);
 //! Stocking
 
 //* First Store
+rockinWilly.addToInventory(stein2, .1);
+rockinWilly.addToInventory(stein1, .1);
+rockinWilly.addToInventory(stein3, .1);
+rockinWilly.addToInventory(wackyWaving, .3);
+rockinWilly.addToInventory(kaleidoscope, .4);
 
 //* Second Store
+snoogins.addToInventory(citar, .4);
+snoogins.addToInventory(kaleidoscope, .4);
+snoogins.addToInventory(wackyWaving, .3);
 
 //* Third Store
+boobooKittyFun.addToInventory(harp, .5);
+boobooKittyFun.addToInventory(stein1, .1);
+boobooKittyFun.addToInventory(wackyWaving, .3);
 
 //! Selling
 
 //* First Store
+rockinWilly.sellItem(citar, .4);
 
 //* Second Store
-
+snoogins.sellItem(stein2, .1);
 //* Third Store
-
+boobooKittyFun.sellItem(kaleidoscope, .4);
 //! Testing
-/* 
-    Simply console log each store to check the completed details.
-*/
+console.log(rockinWilly);
+console.log(snoogins);
+console.log(boobooKittyFun);
